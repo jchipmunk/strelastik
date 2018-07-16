@@ -1,0 +1,28 @@
+version: '2'
+services:
+  elasticsearch:
+    image: elasticsearch:5.6
+    # NOTE: the default vm.max_map_count maynot be enough to
+    #       run Elasticsearch increase it to at least 262144
+    # sudo sysctl -w vm.max_map_count=262144
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    environment:
+      - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+  strelastik:
+    image: jchipmunk/strelastik:0.0.1
+    ports:
+      - 8080:8080
+      - 1505:1505
+    links:
+      - elasticsearch
+    volumes:
+      - ./profile/:/var/opt/strelastik/profile/
+    environment:
+      - TTYD_PORT=8080
+      - STRELASTIK_OPTS=-Xms1024m -Xmx1024m -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=1505,suspend=n
+
+# ./bin/strelastik start -p ./profile/stress-profile.yml -host http://elasticsearch:9200

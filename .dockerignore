@@ -1,0 +1,17 @@
+.git
+.idea
+.gradle
+.gitignore
+
+demo
+gradle
+src
+out
+
+build.gradle
+docker-build.sh
+gradlew
+gradlew.bat
+settings.gradle
+LICENSE
+README.md

@@ -1,0 +1,1 @@
+The `strelastik` tool is a Kotlin-based stress testing utility for load testing an Elasticsearch cluster.

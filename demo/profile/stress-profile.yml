@@ -1,0 +1,23 @@
+index:
+  settings:
+    number_of_shards: 1
+    number_of_replicas: 0
+  type: stress
+  prefix: stress-test-
+  cleanup: true
+  definitions:
+    - name: device
+      documentFile: ./document/device.mustache
+      mappingFile: ./mapping/device.json
+    - name: port
+      documentFile: ./document/port.mustache
+      mappingFile: ./mapping/port.json
+steps:
+  - operation: index
+    durationMs: 60000
+    threads: 5
+    bulkSize: 500
+  - operation: mixed
+    durationMs: 60000
+    threads: 5
+    bulkSize: 500
