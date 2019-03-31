@@ -7,11 +7,11 @@ index:
   cleanup: true
   definitions:
     - name: device
-      documentFile: ./document/device.mustache
-      mappingFile: ./mapping/device.json
+      documentFile: ./elasticsearch/document/device.mustache
+      mappingFile: ./elasticsearch/mapping/device.json
     - name: port
-      documentFile: ./document/port.mustache
-      mappingFile: ./mapping/port.json
+      documentFile: ./elasticsearch/document/port.mustache
+      mappingFile: ./elasticsearch/mapping/port.json
 steps:
   - operation: index
     durationMs: 60000

@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.jchipmunk.strelastik.task
+package com.github.jchipmunk.strelastik.task.zookeeper
 
 import com.codahale.metrics.MetricRegistry
-import com.github.jchipmunk.strelastik.data.ExecutionContext
-import io.searchbox.client.JestClient
+import com.github.jchipmunk.strelastik.step.ExecutionRegistry
+import com.github.jchipmunk.strelastik.task.Task
+import com.github.jchipmunk.strelastik.task.TaskFactory
+import org.apache.curator.framework.CuratorFramework
 
-class IndexTaskFactory(
-        private val taskConfig: IndexTask.Config,
-        private val client: JestClient) : TaskFactory {
+class ZooKeeperCreateTaskFactory(
+        private val taskConfig: ZooKeeperCreateTask.Config,
+        private val clientFactory: () -> CuratorFramework) : TaskFactory {
     companion object {
-        const val OPERATION = "index"
+        const val OPERATION = "create"
     }
 
-    override fun create(context: ExecutionContext, registry: MetricRegistry): Task {
-        return IndexTask(OPERATION, taskConfig, client, context, registry)
+    override fun createTask(executionRegistry: ExecutionRegistry, metricRegistry: MetricRegistry): Task {
+        return ZooKeeperCreateTask(taskConfig, OPERATION, clientFactory.invoke(), executionRegistry, metricRegistry)
     }
 
     override fun getOperation(): String {

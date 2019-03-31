@@ -15,64 +15,10 @@
  */
 package com.github.jchipmunk.strelastik.command
 
-import com.beust.jcommander.Parameter
-import com.github.jchipmunk.strelastik.storage.FileStorage
-import com.github.jchipmunk.strelastik.storage.Storage
-import io.searchbox.client.JestClient
-import io.searchbox.client.JestClientFactory
-import io.searchbox.client.config.HttpClientConfig
-import io.searchbox.indices.DeleteIndex
-import io.searchbox.indices.IndicesExists
-import org.slf4j.LoggerFactory
-import java.nio.file.Paths
+interface Command {
+    fun name(): String
 
-abstract class Command {
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(Command::class.java)
-    }
+    fun execute()
 
-    @Parameter(names = ["-h", "--host"], description = "Elasticsearch hosts", required = true)
-    private var hosts: List<String> = emptyList()
-    @Parameter(names = ["--username"], description = "Elasticsearch username")
-    private var username: String? = null
-    @Parameter(names = ["--password"], description = "Elasticsearch password", password = true)
-    private var password: String? = null
-    @Parameter(names = ["-p", "--profile-file"], description = "Workload profile file", required = true)
-    protected var profileFile: String? = null
-
-    abstract fun execute()
-
-    abstract fun shutdown()
-
-    protected fun createClient(): JestClient {
-        val factory = JestClientFactory()
-        val clientConfigBuilder = HttpClientConfig.Builder(hosts)
-                .connTimeout(5000)
-                .readTimeout(5000)
-                .multiThreaded(true)
-        if (username != null && password != null) {
-            clientConfigBuilder.defaultCredentials(username, password)
-        }
-        factory.setHttpClientConfig(clientConfigBuilder.build())
-        return factory.`object`
-    }
-
-    protected fun createStorage(): Storage {
-        val parent = Paths.get(profileFile)?.parent ?: throw IllegalArgumentException("parent directory isn't defined")
-        return FileStorage(parent)
-    }
-
-    protected fun indexExists(index: String, client: JestClient): Boolean {
-        val indicesExists = IndicesExists.Builder(index).build()
-        val result = client.execute(indicesExists)
-        return result.isSucceeded
-    }
-
-    protected fun deleteIndex(index: String, client: JestClient) {
-        LOGGER.debug("Deleting index: {}", index)
-        val deleteIndex = DeleteIndex.Builder(index).build()
-        val result = client.execute(deleteIndex)
-        if (!result.isSucceeded) throw IllegalStateException("Could not delete index: $index, reason: ${result.errorMessage}")
-        LOGGER.debug("Index: {} deleted", index)
-    }
+    fun interrupt() {}
 }

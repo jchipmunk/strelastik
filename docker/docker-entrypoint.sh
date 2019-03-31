@@ -6,11 +6,11 @@ set -e
 # Process the argument to this container
 case $1 in
     start)
-        if [ "$DEBUG" == true ]; then
+        if [[ "$DEBUG" == true ]]; then
             set -x
             printenv
         fi
-        if [ -z "$TTYD_PORT" ]; then
+        if [[ -z "$TTYD_PORT" ]]; then
             TTYD_PORT=8080
         fi
 

@@ -16,36 +16,36 @@
 package com.github.jchipmunk.strelastik
 
 import com.beust.jcommander.JCommander
-import com.github.jchipmunk.strelastik.command.ClearCommand
-import com.github.jchipmunk.strelastik.command.StartCommand
-
-private const val START_COMMAND = "start"
-private const val CLEAR_COMMAND = "clear"
+import com.github.jchipmunk.strelastik.command.Command
+import com.github.jchipmunk.strelastik.command.elasticsearch.ElasticsearchClearCommand
+import com.github.jchipmunk.strelastik.command.elasticsearch.ElasticsearchStartCommand
+import com.github.jchipmunk.strelastik.command.zookeeper.ZooKeeperClearCommand
+import com.github.jchipmunk.strelastik.command.zookeeper.ZooKeeperStartCommand
 
 fun main(args: Array<String>) {
     val commander = JCommander()
     commander.programName = "strelastik"
-    val startCommand = StartCommand()
-    commander.addCommand(START_COMMAND, startCommand)
-    val clearCommand = ClearCommand()
-    commander.addCommand(CLEAR_COMMAND, clearCommand)
+    val commands = HashMap<String, Command>()
+    addCommand(commands, ElasticsearchStartCommand())
+    addCommand(commands, ElasticsearchClearCommand())
+    addCommand(commands, ZooKeeperStartCommand())
+    addCommand(commands, ZooKeeperClearCommand())
+    commands.forEach { name, command -> commander.addCommand(name, command) }
     commander.addCommand("help", Any())
     commander.parse(*args)
-    val command = when {
-        commander.parsedCommand == START_COMMAND -> startCommand
-        commander.parsedCommand == CLEAR_COMMAND -> clearCommand
-        else -> {
-            commander.usage(START_COMMAND)
-            commander.usage(CLEAR_COMMAND)
-            null
-        }
-    }
-    if (command != null) {
+    val command = commands[commander.parsedCommand]
+    if (command == null) {
+        commands.keys.forEach { commander.usage(it) }
+    } else {
         Runtime.getRuntime().addShutdownHook(object : Thread() {
             override fun run() {
-                command.shutdown()
+                command.interrupt()
             }
         })
         command.execute()
     }
+}
+
+private fun addCommand(commands: MutableMap<String, Command>, command: Command) {
+    commands[command.name()] = command
 }

@@ -16,39 +16,7 @@
 package com.github.jchipmunk.strelastik.step
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.github.jchipmunk.strelastik.data.Document
-import com.github.jchipmunk.strelastik.task.IndexTask
-import com.github.jchipmunk.strelastik.task.IndexTaskFactory
-import com.github.jchipmunk.strelastik.task.MixedTask
-import com.github.jchipmunk.strelastik.task.MixedTaskFactory
-import io.searchbox.client.JestClient
 
-class StepFactory(private val client: JestClient) {
-    fun create(number: Int, item: ObjectNode, documents: Array<Document>): Step {
-        val operationNode = item.get("operation") ?: throw IllegalArgumentException("operation field isn't found")
-        val durationMsNode = item.get("durationMs") ?: throw IllegalArgumentException("durationMs field isn't found")
-        val threadsNode = item.get("threads") ?: throw IllegalArgumentException("threads field isn't found")
-        val operation = operationNode.textValue()
-        val taskFactory = when (operation) {
-            IndexTaskFactory.OPERATION -> {
-                val bulkSizeNode = item.get("bulkSize") ?: throw IllegalArgumentException("bulkSize field isn't found")
-                val taskConfig = IndexTask.Config(bulkSizeNode.intValue(), documents)
-                IndexTaskFactory(taskConfig, client)
-            }
-            MixedTaskFactory.OPERATION -> {
-                val bulkSizeNode = item.get("bulkSize") ?: throw IllegalArgumentException("bulkSize field isn't found")
-                val taskConfig = MixedTask.Config(bulkSizeNode.intValue(), toMap(documents))
-                MixedTaskFactory(taskConfig, client)
-            }
-            else -> throw UnsupportedOperationException("$operation operation isn't supported")
-        }
-        val name = "${taskFactory.getOperation()}-$number"
-        return Step(name, taskFactory, durationMsNode.longValue(), threadsNode.intValue())
-    }
-
-    private fun toMap(documents: Array<Document>): Map<String, Document> {
-        val result = hashMapOf<String, Document>()
-        documents.forEach { result[it.index] = it }
-        return result
-    }
+interface StepFactory {
+    fun createStep(number: Int, item: ObjectNode): Step
 }

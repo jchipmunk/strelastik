@@ -12,6 +12,10 @@ services:
       - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     environment:
       - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+  zookeeper:
+    image: zookeeper:3.4.14
+    ports:
+      - 2181:2181
   strelastik:
     image: jchipmunk/strelastik:0.0.1
     ports:
@@ -25,4 +29,5 @@ services:
       - TTYD_PORT=8080
       - STRELASTIK_OPTS=-Xms1024m -Xmx1024m -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=1505,suspend=n
 
-# ./bin/strelastik start -p ./profile/stress-profile.yml -host http://elasticsearch:9200
+# ./bin/strelastik elasticsearch-start -p /var/opt/strelastik/profile/elasticsearch-stress-profile.yml -h http://elasticsearch:9200
+# ./bin/strelastik zookeeper-start -p /var/opt/strelastik/profile/zookeeper-stress-profile.yml -h zookeeper:2181

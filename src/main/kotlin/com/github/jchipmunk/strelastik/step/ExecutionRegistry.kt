@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.jchipmunk.strelastik.task
+package com.github.jchipmunk.strelastik.step
 
-import com.codahale.metrics.MetricRegistry
-import com.github.jchipmunk.strelastik.step.ExecutionRegistry
+import java.util.concurrent.ConcurrentHashMap
 
-interface TaskFactory {
-    fun createTask(executionRegistry: ExecutionRegistry, metricRegistry: MetricRegistry): Task
+class ExecutionRegistry {
+    private val registry = ConcurrentHashMap<String, Any>()
 
-    fun getOperation(): String
+    fun <T> get(key: String, init: () -> T): T {
+        val value = registry.computeIfAbsent(key) { init.invoke() as Any }
+        @Suppress("UNCHECKED_CAST")
+        return value as T
+    }
 }

@@ -15,14 +15,8 @@
  */
 package com.github.jchipmunk.strelastik.storage
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.github.jchipmunk.strelastik.data.Profile
-import com.github.mustachejava.Mustache
-
 interface Storage {
-    fun profile(pathname: String?): Profile?
+    fun <P> profile(pathname: String?, profileClass: Class<P>): P?
 
-    fun document(pathname: String?): Mustache?
-
-    fun mapping(pathname: String?): JsonNode?
+    fun <T> template(pathname: String?, templateClass: Class<T>): T?
 }
