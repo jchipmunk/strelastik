@@ -2,8 +2,8 @@ group 'com.github.jchipmunk.strelastik'
 version '0.0.1-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.2.51'
-    ext.jackson_version = '2.9.6'
+    ext.kotlin_version = '1.3.21'
+    ext.jackson_version = '2.9.8'
     ext.spec_version = '1.1.5'
 
     repositories {
@@ -68,14 +68,20 @@ dependencies {
     compile "ch.qos.logback:logback-classic:1.2.3"
     compile "com.google.guava:guava:21.0"
     compile "com.beust:jcommander:1.72"
-    compile "io.searchbox:jest:5.3.3"
     compile "com.fasterxml.jackson.core:jackson-core:$jackson_version"
     compile "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jackson_version"
     compile "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version"
-    compile "com.github.spullara.mustache.java:compiler:0.9.5"
-    compile "io.dropwizard.metrics:metrics-core:4.0.2"
+    compile "com.github.spullara.mustache.java:compiler:0.9.6"
+    compile "io.dropwizard.metrics:metrics-core:4.0.5"
+    compile "io.searchbox:jest:5.3.4"
+    compile("org.apache.zookeeper:zookeeper:3.4.14") {
+        exclude group: "org.slf4j", module: "slf4j-log4j12"
+    }
+    compile("org.apache.curator:curator-framework:4.2.0") {
+        exclude group: "org.apache.zookeeper", module: "zookeeper"
+    }
 
     testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testCompile "org.junit.jupiter:junit-jupiter-api:5.2.0"

@@ -1,0 +1,15 @@
+ztree:
+  namespace: stress-test
+  cleanup: true
+  definitions:
+    - name: device
+      znodeFile: ./zookeeper/znode/device.mustache
+    - name: port
+      znodeFile: ./zookeeper/znode/port.mustache
+steps:
+  - operation: create
+    durationMs: 60000
+    threads: 5
+  - operation: mixed
+    durationMs: 60000
+    threads: 5

@@ -15,22 +15,11 @@
  */
 package com.github.jchipmunk.strelastik.task
 
-import com.codahale.metrics.MetricRegistry
-import com.github.jchipmunk.strelastik.data.ExecutionContext
-import io.searchbox.client.JestClient
+import java.util.concurrent.atomic.AtomicBoolean
 
-class MixedTaskFactory(
-        private val taskConfig: MixedTask.Config,
-        private val client: JestClient) : TaskFactory {
-    companion object {
-        const val OPERATION = "mixed"
-    }
+class TaskContext(private val running: AtomicBoolean) {
 
-    override fun create(context: ExecutionContext, registry: MetricRegistry): Task {
-        return MixedTask(OPERATION, taskConfig, client, context, registry)
-    }
-
-    override fun getOperation(): String {
-        return OPERATION
+    fun isRunning(): Boolean {
+        return running.get()
     }
 }

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.github.jchipmunk.strelastik.data.Profile
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.Mustache
 import com.google.common.io.Files
@@ -59,15 +58,18 @@ class FileStorage(parent: Path) : Storage {
         return file
     }
 
-    override fun profile(pathname: String?): Profile? {
-        return if (pathname == null) null else mapper.readValue(readString(file(pathname)), Profile::class.java)
+    override fun <P> profile(pathname: String?, profileClass: Class<P>): P? {
+        return if (pathname == null) null else mapper.readValue(readString(file(pathname)), profileClass)
     }
 
-    override fun document(pathname: String?): Mustache? {
-        return if (pathname == null) null else readMustache(relativeFile(pathname))
-    }
-
-    override fun mapping(pathname: String?): JsonNode? {
-        return if (pathname == null) null else mapper.readTree(readString(relativeFile(pathname)))
+    @Suppress("UNCHECKED_CAST")
+    override fun <T> template(pathname: String?, templateClass: Class<T>): T? {
+        if (pathname == null) return null
+        val file = relativeFile(pathname)
+        return when (templateClass) {
+            Mustache::class.java -> readMustache(file) as T
+            JsonNode::class.java -> mapper.readTree(file) as T
+            else -> mapper.readValue<T>(file, templateClass) as T
+        }
     }
 }

@@ -17,13 +17,14 @@ package com.github.jchipmunk.strelastik.step
 
 import com.codahale.metrics.ConsoleReporter
 import com.codahale.metrics.MetricRegistry
-import com.github.jchipmunk.strelastik.data.ExecutionContext
 import com.github.jchipmunk.strelastik.task.Task
+import com.github.jchipmunk.strelastik.task.TaskContext
 import com.github.jchipmunk.strelastik.task.TaskFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class Step(
         private val name: String,
@@ -37,62 +38,79 @@ class Step(
     private val executor = Executors.newFixedThreadPool(threads, ThreadFactoryBuilder()
             .setNameFormat("strelastik-$name-thread-%d")
             .build())
-    private val registry = MetricRegistry()
+    private val metricRegistry = MetricRegistry()
+    private val tasks = ArrayList<Task>(threads)
+    private val running = AtomicBoolean()
 
-    fun take(context: ExecutionContext) {
-        LOGGER.info("Starting step: {}", name)
+    fun take(executionRegistry: ExecutionRegistry) {
+        LOGGER.info("> Starting step: {}", name)
         try {
-            val task = taskFactory.create(context, registry)
+            running.set(true)
+            val task = taskFactory.createTask(executionRegistry, metricRegistry)
+            tasks.add(task)
+            val taskContext = TaskContext(running)
             for (i in 0 until threads) {
-                executor.submit(TaskRunnable(i, task))
+                executor.submit(TaskRunnable(i, task, taskContext))
             }
-            LOGGER.info("Waiting for {} milliseconds...", durationMs)
+            LOGGER.info("> Waiting for {} milliseconds...", durationMs)
             Thread.sleep(durationMs)
-            LOGGER.info("Timeout!")
+            LOGGER.info("> Timeout!")
         } catch (e: InterruptedException) {
-            LOGGER.error("Got interrupted while running!")
+            LOGGER.error("> Got interrupted while running!")
             Thread.currentThread().interrupt()
         } finally {
-            LOGGER.info("Stopping step: {}", name)
-            print(registry)
-            if (stop()) LOGGER.info("Step: {} stopped", name) else LOGGER.info("Stop timeout expired!")
+            stop()
         }
     }
 
-    private fun print(registry: MetricRegistry) {
-        LOGGER.info("Print metrics:")
-        val reporter = ConsoleReporter.forRegistry(registry).convertRatesTo(TimeUnit.SECONDS).build()
+    private fun print(metricRegistry: MetricRegistry) {
+        LOGGER.info("> Print metrics:")
+        val reporter = ConsoleReporter.forRegistry(metricRegistry).convertRatesTo(TimeUnit.SECONDS).build()
         reporter.report()
     }
 
-    fun abort() {
-        LOGGER.info("Aborting step: {}", name)
-        print(registry)
-        if (stop()) LOGGER.info("Step: {} aborted", name) else LOGGER.info("Abort timeout expired!")
+    fun stop() {
+        if (running.compareAndSet(true, false)) {
+            LOGGER.info("> Stopping step: {}", name)
+            print(metricRegistry)
+            tasks.forEach {
+                try {
+                    it.stop()
+                } catch (t: Throwable) {
+                    // ignored here
+                }
+            }
+            if (shutdown()) LOGGER.info("> Step: {} stopped", name) else LOGGER.info("> Stop timeout expired!")
+        }
     }
 
-    private fun stop(): Boolean {
+    private fun shutdown(): Boolean {
         if (executor.isShutdown) {
-            LOGGER.info("Step: {} already stopped", name)
+            LOGGER.info("> Step: {} already stopped", name)
             return true
         }
-        executor.shutdownNow()
+        executor.shutdown()
         try {
-            return executor.awaitTermination(5L, TimeUnit.SECONDS)
+            if (!executor.awaitTermination(5L, TimeUnit.SECONDS)) {
+                executor.shutdownNow()
+                return false
+            }
         } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-            LOGGER.error("Got interrupted while shutting down!")
+            LOGGER.error("> Got interrupted while shutting down!")
         }
-        return false
+        return true
     }
 
-    private class TaskRunnable(private val number: Int, private val task: Task) : Runnable {
+    private class TaskRunnable(
+            private val number: Int,
+            private val task: Task,
+            private val taskContext: TaskContext) : Runnable {
         override fun run() {
-            LOGGER.debug("Starting {} thread #{}", task.name, number)
+            LOGGER.debug("> Starting {} thread #{}", task.name, number)
             while (!Thread.currentThread().isInterrupted) {
-                task.execute()
+                task.execute(taskContext)
             }
-            LOGGER.debug("Stopping {} thread #{}", task.name, number)
+            LOGGER.debug("> Stopping {} thread #{}", task.name, number)
         }
     }
 }

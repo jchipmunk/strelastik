@@ -1,6 +1,4 @@
-FROM openjdk:8-jre-alpine
-
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+FROM openjdk:8-jre-alpine3.9
 
 ENV STRELASTIK_HOME=/opt/strelastik
 
