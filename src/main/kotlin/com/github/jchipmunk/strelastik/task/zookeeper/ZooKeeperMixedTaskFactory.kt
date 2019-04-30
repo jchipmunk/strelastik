@@ -16,20 +16,21 @@
 package com.github.jchipmunk.strelastik.task.zookeeper
 
 import com.codahale.metrics.MetricRegistry
+import com.github.jchipmunk.strelastik.model.zookeeper.ZNode
 import com.github.jchipmunk.strelastik.step.ExecutionRegistry
 import com.github.jchipmunk.strelastik.task.Task
 import com.github.jchipmunk.strelastik.task.TaskFactory
 import org.apache.curator.framework.CuratorFramework
 
 class ZooKeeperMixedTaskFactory(
-        private val taskConfig: ZooKeeperMixedTask.Config,
+        private val znodes: Map<String, ZNode>,
         private val clientFactory: () -> CuratorFramework) : TaskFactory {
     companion object {
         const val OPERATION = "mixed"
     }
 
     override fun createTask(executionRegistry: ExecutionRegistry, metricRegistry: MetricRegistry): Task {
-        return ZooKeeperMixedTask(taskConfig, OPERATION, clientFactory.invoke(), executionRegistry, metricRegistry)
+        return ZooKeeperMixedTask(OPERATION, znodes, clientFactory.invoke(), executionRegistry, metricRegistry)
     }
 
     override fun getOperation(): String {

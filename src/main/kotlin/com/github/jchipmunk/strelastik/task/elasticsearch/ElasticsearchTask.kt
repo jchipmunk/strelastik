@@ -29,10 +29,11 @@ import org.apache.http.impl.execchain.RequestAbortedException
 import org.slf4j.Logger
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class ElasticsearchTask(final override val name: String,
-                                 private val client: JestClient,
-                                 executionRegistry: ExecutionRegistry,
-                                 metricRegistry: MetricRegistry) : Task {
+abstract class ElasticsearchTask(
+        final override val name: String,
+        private val client: JestClient,
+        executionRegistry: ExecutionRegistry,
+        metricRegistry: MetricRegistry) : Task {
     protected val docs = executionRegistry.get("docs") { ConcurrentHashMap<String, Doc>() }
     protected val meter: Meter = metricRegistry.meter("$name.meter")
     protected val requestTotalCounter: Counter = metricRegistry.counter("$name.request.total.counter")

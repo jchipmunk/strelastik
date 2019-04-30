@@ -33,8 +33,7 @@ class ElasticsearchStepFactory(
         val operationNode = item.get("operation") ?: throw IllegalArgumentException("operation field isn't found")
         val durationMsNode = item.get("durationMs") ?: throw IllegalArgumentException("durationMs field isn't found")
         val threadsNode = item.get("threads") ?: throw IllegalArgumentException("threads field isn't found")
-        val operation = operationNode.textValue()
-        val taskFactory = when (operation) {
+        val taskFactory = when (val operation = operationNode.textValue()) {
             ElasticsearchIndexTaskFactory.OPERATION -> {
                 val taskConfig = ElasticsearchIndexTask.Config(bulkSizeNode(item).intValue(), documents)
                 ElasticsearchIndexTaskFactory(taskConfig, client)

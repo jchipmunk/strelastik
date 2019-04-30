@@ -19,9 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.jchipmunk.strelastik.model.zookeeper.ZNode
 import com.github.jchipmunk.strelastik.step.Step
 import com.github.jchipmunk.strelastik.step.StepFactory
-import com.github.jchipmunk.strelastik.task.zookeeper.ZooKeeperCreateTask
 import com.github.jchipmunk.strelastik.task.zookeeper.ZooKeeperCreateTaskFactory
-import com.github.jchipmunk.strelastik.task.zookeeper.ZooKeeperMixedTask
 import com.github.jchipmunk.strelastik.task.zookeeper.ZooKeeperMixedTaskFactory
 import org.apache.curator.framework.CuratorFramework
 
@@ -32,15 +30,12 @@ class ZooKeeperStepFactory(
         val operationNode = item.get("operation") ?: throw IllegalArgumentException("operation field isn't found")
         val durationMsNode = item.get("durationMs") ?: throw IllegalArgumentException("durationMs field isn't found")
         val threadsNode = item.get("threads") ?: throw IllegalArgumentException("threads field isn't found")
-        val operation = operationNode.textValue()
-        val taskFactory = when (operation) {
+        val taskFactory = when (val operation = operationNode.textValue()) {
             ZooKeeperCreateTaskFactory.OPERATION -> {
-                val taskConfig = ZooKeeperCreateTask.Config(znodes)
-                ZooKeeperCreateTaskFactory(taskConfig, clientFactory)
+                ZooKeeperCreateTaskFactory(znodes, clientFactory)
             }
             ZooKeeperMixedTaskFactory.OPERATION -> {
-                val taskConfig = ZooKeeperMixedTask.Config(toMap(znodes))
-                ZooKeeperMixedTaskFactory(taskConfig, clientFactory)
+                ZooKeeperMixedTaskFactory(toMap(znodes), clientFactory)
             }
             else -> throw UnsupportedOperationException("$operation operation isn't supported")
         }

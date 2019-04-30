@@ -1,0 +1,16 @@
+topic:
+  prefix: stress-test-
+  cleanup: true
+  definitions:
+    - name: device
+      messageFile: ./kafka/message/device.mustache
+    - name: port
+      messageFile: ./kafka/message/port.mustache
+steps:
+  - operation: produce
+    durationMs: 60000
+    threads: 3
+  - operation: consume
+    groupId: stress-test
+    durationMs: 60000
+    threads: 3

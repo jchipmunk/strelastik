@@ -28,8 +28,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class ZooKeeperCreateTask(
-        private val config: Config,
         name: String,
+        private val znodes: Array<ZNode>,
         client: CuratorFramework,
         executionRegistry: ExecutionRegistry,
         metricRegistry: MetricRegistry) : ZooKeeperTask(name, client, executionRegistry, metricRegistry) {
@@ -39,7 +39,7 @@ class ZooKeeperCreateTask(
 
     override fun execute(context: TaskContext) {
         startClient(client)
-        for (znode in config.znodes) {
+        for (znode in znodes) {
             execute(context) {
                 val data = znode.generate()
                 val path = ZKPaths.makePath(znode.name, zpathCounter.incrementAndGet().toString())
@@ -53,6 +53,4 @@ class ZooKeeperCreateTask(
     override fun logger(): Logger {
         return LOGGER
     }
-
-    class Config(val znodes: Array<ZNode>)
 }

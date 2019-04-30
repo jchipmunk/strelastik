@@ -3,3 +3,4 @@ The `strelastik` tool is a Kotlin-based utility designed to load test and measur
 The utility supports the following applications:
 - Elasticsearch
 - ZooKeeper
+- Kafka

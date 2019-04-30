@@ -82,6 +82,7 @@ dependencies {
     compile("org.apache.curator:curator-framework:4.2.0") {
         exclude group: "org.apache.zookeeper", module: "zookeeper"
     }
+    compile 'org.apache.kafka:kafka-clients:1.1.1'
 
     testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testCompile "org.junit.jupiter:junit-jupiter-api:5.2.0"

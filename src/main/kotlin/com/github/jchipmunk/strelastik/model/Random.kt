@@ -37,6 +37,8 @@ class RandomData {
         get() = random.nextDouble()
     val timestamp: String
         get() = LocalDateTime.now(Clock.systemUTC()).format(DateTimeFormatter.ISO_DATE_TIME)
+    val timestampMs: Long
+        get() = System.currentTimeMillis()
     val string5: String
         get() = getString(5)
     val string10: String

@@ -19,6 +19,8 @@ import com.beust.jcommander.JCommander
 import com.github.jchipmunk.strelastik.command.Command
 import com.github.jchipmunk.strelastik.command.elasticsearch.ElasticsearchClearCommand
 import com.github.jchipmunk.strelastik.command.elasticsearch.ElasticsearchStartCommand
+import com.github.jchipmunk.strelastik.command.kafka.KafkaClearCommand
+import com.github.jchipmunk.strelastik.command.kafka.KafkaStartCommand
 import com.github.jchipmunk.strelastik.command.zookeeper.ZooKeeperClearCommand
 import com.github.jchipmunk.strelastik.command.zookeeper.ZooKeeperStartCommand
 
@@ -30,6 +32,8 @@ fun main(args: Array<String>) {
     addCommand(commands, ElasticsearchClearCommand())
     addCommand(commands, ZooKeeperStartCommand())
     addCommand(commands, ZooKeeperClearCommand())
+    addCommand(commands, KafkaStartCommand())
+    addCommand(commands, KafkaClearCommand())
     commands.forEach { name, command -> commander.addCommand(name, command) }
     commander.addCommand("help", Any())
     commander.parse(*args)

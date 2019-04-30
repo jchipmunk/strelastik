@@ -13,49 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.jchipmunk.strelastik.task.zookeeper
+package com.github.jchipmunk.strelastik.task.kafka
 
 import com.codahale.metrics.Counter
 import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
-import com.github.jchipmunk.strelastik.model.zookeeper.ZPath
-import com.github.jchipmunk.strelastik.step.ExecutionRegistry
 import com.github.jchipmunk.strelastik.task.Task
 import com.github.jchipmunk.strelastik.task.TaskContext
-import org.apache.curator.framework.CuratorFramework
 import org.slf4j.Logger
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
 
-abstract class ZooKeeperTask(
+abstract class KafkaTask(
         final override val name: String,
-        protected val client: CuratorFramework,
-        executionRegistry: ExecutionRegistry,
         metricRegistry: MetricRegistry) : Task {
-    protected val zpaths = executionRegistry.get("zpaths") { ConcurrentHashMap<String, ZPath>() }
-    protected val zpathCounter = executionRegistry.get("zpathCounter") { AtomicLong(0) }
     protected val meter: Meter = metricRegistry.meter("$name.meter")
-    protected val operationTotalCounter: Counter = metricRegistry.counter("$name.operation.total.counter")
-    protected val operationFailureCounter: Counter = metricRegistry.counter("$name.operation.failure.counter")
+    protected val invocationTotalCounter: Counter = metricRegistry.counter("$name.invocation.total.counter")
+    protected val invocationFailureCounter: Counter = metricRegistry.counter("$name.invocation.failure.counter")
 
     abstract fun logger(): Logger
+
+    protected fun handleThrowable(t: Throwable) {
+        invocationFailureCounter.inc()
+        logger().error("> Got unexpected exception while executing!", t)
+    }
 
     protected fun execute(context: TaskContext, action: () -> Unit) {
         if (!context.isRunning()) return
         try {
             action.invoke()
-            meter.mark()
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
         } catch (t: Throwable) {
-            operationFailureCounter.inc()
-            logger().error("> Got unexpected exception while executing!", t)
+            handleThrowable(t)
         } finally {
-            operationTotalCounter.inc()
+            invocationTotalCounter.inc()
         }
-    }
-
-    override fun stop() {
-        client.close()
     }
 }

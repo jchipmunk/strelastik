@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.jchipmunk.strelastik.task.zookeeper
+package com.github.jchipmunk.strelastik.task.kafka
 
 import com.codahale.metrics.MetricRegistry
-import com.github.jchipmunk.strelastik.model.zookeeper.ZNode
 import com.github.jchipmunk.strelastik.step.ExecutionRegistry
 import com.github.jchipmunk.strelastik.task.Task
 import com.github.jchipmunk.strelastik.task.TaskFactory
-import org.apache.curator.framework.CuratorFramework
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.util.*
 
-class ZooKeeperCreateTaskFactory(
-        private val znodes: Array<ZNode>,
-        private val clientFactory: () -> CuratorFramework) : TaskFactory {
+class KafkaConsumeTaskFactory(
+        private val topics: Set<String>,
+        private val consumerConfig: Properties) : TaskFactory {
     companion object {
-        const val OPERATION = "create"
+        const val OPERATION = "consume"
     }
 
     override fun createTask(executionRegistry: ExecutionRegistry, metricRegistry: MetricRegistry): Task {
-        return ZooKeeperCreateTask(OPERATION, znodes, clientFactory.invoke(), executionRegistry, metricRegistry)
+        val consumer = KafkaConsumer<ByteArray, ByteArray>(consumerConfig)
+        consumer.subscribe(topics)
+        return KafkaConsumeTask(OPERATION, consumer, metricRegistry)
     }
 
     override fun getOperation(): String {

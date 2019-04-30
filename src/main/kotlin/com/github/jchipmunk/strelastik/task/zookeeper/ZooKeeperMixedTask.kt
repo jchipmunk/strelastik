@@ -26,8 +26,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class ZooKeeperMixedTask(
-        private val config: Config,
         name: String,
+        private val znodes: Map<String, ZNode>,
         client: CuratorFramework,
         executionRegistry: ExecutionRegistry,
         metricRegistry: MetricRegistry) : ZooKeeperTask(name, client, executionRegistry, metricRegistry) {
@@ -45,7 +45,7 @@ class ZooKeeperMixedTask(
             val zpath = iterator!!.next()
             execute(context) { client.data.forPath(zpath.path) }
             execute(context) {
-                val znode = config.znodes[zpath.name]
+                val znode = znodes[zpath.name]
                 val data = znode!!.generate()
                 val setter = client.setData()
                 if (data == null) setter.forPath(zpath.path) else setter.forPath(zpath.path, data.toByteArray())
@@ -57,6 +57,4 @@ class ZooKeeperMixedTask(
     override fun logger(): Logger {
         return LOGGER
     }
-
-    class Config(val znodes: Map<String, ZNode>)
 }
