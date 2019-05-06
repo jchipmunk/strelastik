@@ -39,17 +39,15 @@ class Step(
             .setNameFormat("strelastik-$name-thread-%d")
             .build())
     private val metricRegistry = MetricRegistry()
-    private val tasks = ArrayList<Task>(threads)
     private val running = AtomicBoolean()
 
     fun take(executionRegistry: ExecutionRegistry) {
         LOGGER.info("> Starting step: {}", name)
         try {
             running.set(true)
-            val task = taskFactory.createTask(executionRegistry, metricRegistry)
-            tasks.add(task)
             val taskContext = TaskContext(running)
             for (i in 0 until threads) {
+                val task = taskFactory.createTask(executionRegistry, metricRegistry)
                 executor.submit(TaskRunnable(i, task, taskContext))
             }
             LOGGER.info("> Waiting for {} milliseconds...", durationMs)
@@ -73,13 +71,6 @@ class Step(
         if (running.compareAndSet(true, false)) {
             LOGGER.info("> Stopping step: {}", name)
             print(metricRegistry)
-            tasks.forEach {
-                try {
-                    it.stop()
-                } catch (t: Throwable) {
-                    // ignored here
-                }
-            }
             if (shutdown()) LOGGER.info("> Step: {} stopped", name) else LOGGER.info("> Stop timeout expired!")
         }
     }
@@ -107,10 +98,17 @@ class Step(
             private val taskContext: TaskContext) : Runnable {
         override fun run() {
             LOGGER.debug("> Starting {} thread #{}", task.name, number)
-            while (!Thread.currentThread().isInterrupted) {
-                task.execute(taskContext)
+            task.start()
+            try {
+                while (taskContext.isRunning()) task.execute(taskContext)
+            } finally {
+                try {
+                    task.stop()
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                }
+                LOGGER.debug("> Stopping {} thread #{}", task.name, number)
             }
-            LOGGER.debug("> Stopping {} thread #{}", task.name, number)
         }
     }
 }

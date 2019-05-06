@@ -3,7 +3,7 @@ FROM openjdk:8-jre-alpine3.9
 ENV STRELASTIK_HOME=/opt/strelastik
 
 RUN set -x \
-    && apk --update --no-cache add bash curl rsync vim tini ttyd jattach openjdk8-dbg="$JAVA_ALPINE_VERSION" \
+    && apk --update --no-cache add bash curl rsync vim tini ttyd jattach \
     && rm -rf /var/cache/apk/*
 
 # Add user

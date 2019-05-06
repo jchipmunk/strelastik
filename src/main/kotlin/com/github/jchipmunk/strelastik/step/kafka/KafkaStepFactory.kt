@@ -25,6 +25,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig.*
 import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import java.util.*
 
 class KafkaStepFactory(
@@ -38,8 +39,8 @@ class KafkaStepFactory(
             KafkaProduceTaskFactory.OPERATION -> {
                 val producerConfig = Properties()
                 producerConfig.putAll(config)
-                producerConfig[KEY_SERIALIZER_CLASS_CONFIG] = ByteArrayDeserializer::class.java.name
-                producerConfig[VALUE_SERIALIZER_CLASS_CONFIG] = ByteArrayDeserializer::class.java.name
+                producerConfig[KEY_SERIALIZER_CLASS_CONFIG] = ByteArraySerializer::class.java.name
+                producerConfig[VALUE_SERIALIZER_CLASS_CONFIG] = ByteArraySerializer::class.java.name
                 KafkaProduceTaskFactory(messages, producerConfig)
             }
             KafkaConsumeTaskFactory.OPERATION -> {

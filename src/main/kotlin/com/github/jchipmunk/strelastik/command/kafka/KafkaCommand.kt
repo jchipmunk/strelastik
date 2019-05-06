@@ -21,25 +21,26 @@ import com.github.jchipmunk.strelastik.storage.FileStorage
 import com.github.jchipmunk.strelastik.storage.Storage
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.DeleteTopicsOptions
+import org.apache.kafka.common.errors.UnknownTopicOrPartitionException
 import org.slf4j.Logger
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.ExecutionException
 
 abstract class KafkaCommand : Command {
     @Parameter(names = ["-h", "--host"], description = "Kafka hosts", required = true)
     private var hosts: String? = null
     @Parameter(names = ["-p", "--profile-file"], description = "Workload profile file", required = true)
     protected var profileFile: String? = null
-    @Parameter(names = ["-p", "--config-file"], description = "Kafka configuration file", required = false)
+    @Parameter(names = ["-c", "--config-file"], description = "Kafka configuration file", required = false)
     protected var configFile: String? = null
 
     abstract fun logger(): Logger
 
     protected fun getConfig(): Properties {
         val config = Properties()
-        if (configFile == null) return config
-        config.load(File(configFile).inputStream())
+        if (configFile != null) config.load(File(configFile).inputStream())
         config["bootstrap.servers"] = hosts
         return config
     }
@@ -53,8 +54,13 @@ abstract class KafkaCommand : Command {
         logger().info("> Clear Kafka")
         AdminClient.create(getConfig()).use {
             logger().debug("> Deleting topics: {}", topics)
-            val result = it.deleteTopics(topics.toMutableSet(), DeleteTopicsOptions().timeoutMs(5000))
-            result.all().get()
+            try {
+                it.deleteTopics(topics.toMutableSet(), DeleteTopicsOptions().timeoutMs(5000)).all().get()
+            } catch (e: ExecutionException) {
+                if (e.cause !is UnknownTopicOrPartitionException) {
+                    throw e
+                }
+            }
             logger().debug("> Topics: {} deleted", topics)
         }
         logger().info("> Kafka is cleared of topics")

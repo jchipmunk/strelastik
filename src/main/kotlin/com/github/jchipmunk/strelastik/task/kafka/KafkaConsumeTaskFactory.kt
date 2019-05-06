@@ -31,8 +31,7 @@ class KafkaConsumeTaskFactory(
 
     override fun createTask(executionRegistry: ExecutionRegistry, metricRegistry: MetricRegistry): Task {
         val consumer = KafkaConsumer<ByteArray, ByteArray>(consumerConfig)
-        consumer.subscribe(topics)
-        return KafkaConsumeTask(OPERATION, consumer, metricRegistry)
+        return KafkaConsumeTask(OPERATION, consumer, topics, metricRegistry)
     }
 
     override fun getOperation(): String {

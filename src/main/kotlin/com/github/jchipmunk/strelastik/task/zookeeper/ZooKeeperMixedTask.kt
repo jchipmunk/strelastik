@@ -37,8 +37,11 @@ class ZooKeeperMixedTask(
 
     private var iterator: Iterator<ZPath>? = null
 
+    override fun logger(): Logger {
+        return LOGGER
+    }
+
     override fun execute(context: TaskContext) {
-        startClient(client)
         if (iterator == null) iterator = zpaths.values.iterator()
         while (iterator!!.hasNext()) {
             if (!context.isRunning()) return
@@ -52,9 +55,5 @@ class ZooKeeperMixedTask(
             }
             if (!iterator!!.hasNext()) iterator = zpaths.values.iterator()
         }
-    }
-
-    override fun logger(): Logger {
-        return LOGGER
     }
 }

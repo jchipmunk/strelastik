@@ -18,12 +18,17 @@ package com.github.jchipmunk.strelastik.task.kafka
 import com.codahale.metrics.MetricRegistry
 import com.github.jchipmunk.strelastik.task.TaskContext
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
+import org.apache.kafka.common.TopicPartition
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class KafkaConsumeTask(
         name: String,
         private val consumer: KafkaConsumer<ByteArray, ByteArray>,
+        private val topics: Set<String>,
         metricRegistry: MetricRegistry) : KafkaTask(name, metricRegistry) {
     companion object {
         private val LOGGER = LoggerFactory.getLogger(KafkaConsumeTask::class.java)
@@ -31,6 +36,17 @@ class KafkaConsumeTask(
 
     override fun logger(): Logger {
         return LOGGER
+    }
+
+    override fun start() {
+        val assignmentLatch = CountDownLatch(1)
+        consumer.subscribe(topics, object : NoOpConsumerRebalanceListener() {
+            override fun onPartitionsAssigned(partitions: Collection<TopicPartition>?) {
+                consumer.seekToBeginning(partitions)
+                assignmentLatch.countDown()
+            }
+        })
+        assignmentLatch.await(5, TimeUnit.SECONDS)
     }
 
     override fun execute(context: TaskContext) {

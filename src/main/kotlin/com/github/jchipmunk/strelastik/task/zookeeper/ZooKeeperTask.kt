@@ -19,6 +19,7 @@ import com.codahale.metrics.Counter
 import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
 import com.github.jchipmunk.strelastik.model.zookeeper.ZPath
+import com.github.jchipmunk.strelastik.model.zookeeper.startClient
 import com.github.jchipmunk.strelastik.step.ExecutionRegistry
 import com.github.jchipmunk.strelastik.task.Task
 import com.github.jchipmunk.strelastik.task.TaskContext
@@ -39,6 +40,10 @@ abstract class ZooKeeperTask(
     protected val operationFailureCounter: Counter = metricRegistry.counter("$name.operation.failure.counter")
 
     abstract fun logger(): Logger
+
+    override fun start() {
+        startClient(client)
+    }
 
     protected fun execute(context: TaskContext, action: () -> Unit) {
         if (!context.isRunning()) return

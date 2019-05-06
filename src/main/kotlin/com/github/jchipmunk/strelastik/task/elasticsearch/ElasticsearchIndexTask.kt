@@ -36,6 +36,10 @@ class ElasticsearchIndexTask(
         private val LOGGER = LoggerFactory.getLogger(ElasticsearchIndexTask::class.java)
     }
 
+    override fun logger(): Logger {
+        return LOGGER
+    }
+
     override fun execute(context: TaskContext) {
         val bulkBuilder = Bulk.Builder()
         var i = 0
@@ -64,10 +68,6 @@ class ElasticsearchIndexTask(
                 }
             }
         }
-    }
-
-    override fun logger(): Logger {
-        return LOGGER
     }
 
     class Config(val batchSize: Int, val documents: Array<Document>)

@@ -39,6 +39,10 @@ class ElasticsearchMixedTask(
 
     private var iterator: Iterator<Doc>? = null
 
+    override fun logger(): Logger {
+        return LOGGER
+    }
+
     override fun execute(context: TaskContext) {
         val docsToGet = ArrayList<Doc>(config.batchSize)
         val bulkBuilder = Bulk.Builder()
@@ -74,10 +78,6 @@ class ElasticsearchMixedTask(
                 }
             }
         }
-    }
-
-    override fun logger(): Logger {
-        return LOGGER
     }
 
     class Config(val batchSize: Int, val documents: Map<String, Document>)

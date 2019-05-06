@@ -37,8 +37,11 @@ class ZooKeeperCreateTask(
         private val LOGGER = LoggerFactory.getLogger(ZooKeeperCreateTask::class.java)
     }
 
+    override fun logger(): Logger {
+        return LOGGER
+    }
+
     override fun execute(context: TaskContext) {
-        startClient(client)
         for (znode in znodes) {
             execute(context) {
                 val data = znode.generate()
@@ -48,9 +51,5 @@ class ZooKeeperCreateTask(
                 zpaths[znode.name] = ZPath(znode.name, path)
             }
         }
-    }
-
-    override fun logger(): Logger {
-        return LOGGER
     }
 }

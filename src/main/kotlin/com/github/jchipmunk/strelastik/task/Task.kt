@@ -18,6 +18,8 @@ package com.github.jchipmunk.strelastik.task
 interface Task {
     val name: String
 
+    fun start() {}
+
     fun execute(context: TaskContext)
 
     fun stop() {}
